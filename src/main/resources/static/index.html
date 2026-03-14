@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yıldız Wallet - İşlem Paneli</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body { background-color: #f0f2f5; padding-top: 30px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .btn-custom { border-radius: 8px; font-weight: 600; }
+        .scroll-list { max-height: 500px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-center mb-5 fw-bold text-primary">🚀 Yıldız Wallet Paneli</h2>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card p-4">
+                <h5 class="card-title text-secondary">🆕 Yeni Cüzdan Oluştur</h5>
+                <div class="row g-2">
+                    <div class="col-md-5"><input type="email" id="newEmail" class="form-control" placeholder="E-posta"></div>
+                    <div class="col-md-4"><input type="number" id="newBalance" class="form-control" placeholder="Bakiye"></div>
+                    <div class="col-md-3"><button onclick="createWallet()" class="btn btn-dark w-100 btn-custom">Kayıt Et</button></div>
+                </div>
+                <div id="createStatus" class="mt-2 text-center small"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card p-4">
+                <h5 class="card-title text-success">💸 Para Transferi</h5>
+                <input type="email" id="fromEmail" class="form-control" placeholder="Gönderen"
+                       onfocus="lastFocusedInputId = 'fromEmail'">
+
+                <input type="email" id="toEmail" class="form-control" placeholder="Alıcı"
+                       onfocus="lastFocusedInputId = 'toEmail'">
+                <div class="mb-3"><input type="number" id="amount" class="form-control" placeholder="Miktar"></div>
+                <button onclick="transferMoney()" class="btn btn-success w-100 btn-custom">Transfer Et</button>
+                <div id="transferStatus" class="mt-2 text-center small"></div>
+            </div>
+
+            <div class="card p-4">
+                <h5 class="card-title text-primary">🔍 Bakiye Sorgula</h5>
+                <div class="input-group">
+                    <input type="email" id="searchEmail" class="form-control" placeholder="E-posta girin">
+                    <button onclick="getWallet()" class="btn btn-primary btn-custom">Sorgula</button>
+                </div>
+                <div id="balanceResult" class="mt-3 text-center h5 text-primary"></div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between mb-3">
+                    <h5 class="card-title text-info">👥 Kayıtlılar</h5>
+                    <button onclick="listAllWallets()" class="btn btn-outline-info btn-sm">Yenile</button>
+                </div>
+                <div class="table-responsive scroll-list">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                        <tr><th>E-posta</th><th class="text-center">İşlem</th></tr>
+                        </thead>
+                        <tbody id="walletTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
