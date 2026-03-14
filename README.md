@@ -11,8 +11,6 @@ This project builds a complete transaction pipeline from scratch including:
 * **Infrastructure orchestration** (Docker Compose)
 * **Logging and debugging**
 
-> **Goal:** The goal is to understand how financial microservices and event-driven architectures work internally rather than relying on high-level managed services.
-
 ---
 
 ## ✨ Features
