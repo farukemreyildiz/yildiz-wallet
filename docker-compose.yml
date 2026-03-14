@@ -5,8 +5,8 @@ services:
     image: postgres:15 # PostgreSQL'in 15. sürümünü kullanıyoruz.
     container_name: wallet-db
     ports:
-      # Sol taraf (5433) senin bilgisayarındaki port, sağ taraf (5432) konteyner içindeki port.
-      # Lokaldeki diğer Postgres servisleriyle çakışmaması için 5433'e çektik.
+      # Sol taraf (5433)  bilgisayardaki port, sağ taraf (5432) konteyner içindeki port.
+      # Lokaldeki diğer Postgres servisleriyle çakışmaması için 5433'e çekildi.
       - "5433:5432"
     environment:
       POSTGRES_USER: admin
