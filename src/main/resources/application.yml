@@ -1,33 +1,41 @@
 spring:
   application:
-    name: wallet-service
+    name: wallet-service # Uygulamanın mikroservis ekosistemindeki benzersiz adı.
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/wallet_db
-    username: admin
-    password: password
+    # Veritabanı bağlantı adresi. 5433 portu üzerinden Docker'daki PostgreSQL'e bağlanır.
+    url: jdbc:postgresql://localhost:5433/wallet_db
+    username: admin # Docker-compose'da belirttiğimiz yetkili kullanıcı.
+    password: password # Veritabanı erişim şifresi.
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
+      # 'update' modu: Veritabanı şemasını koddaki Entity sınıflarına göre otomatik günceller.
       ddl-auto: update
-    show-sql: true
+    show-sql: true # Çalışan tüm SQL sorgularını terminale yazdırarak debug yapmamızı sağlar.
     properties:
       hibernate:
-        format_sql: true
+        format_sql: true # Terminaldeki SQL sorgularını daha okunaklı (alt alta) hale getirir.
 
   data:
     redis:
+      # Önbellekleme için kullanılan Redis servisinin adresi ve varsayılan portu.
       host: localhost
       port: 6379
 
   kafka:
+    # Kafka broker'ının adresi. Uygulama mesajları buradan alıp buraya gönderir.
     bootstrap-servers: localhost:9092
     producer:
+      # Gönderilen mesajların anahtar (key) ve içerik (value) tiplerini String olarak serileştirir.
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
+      # Aynı işi yapan consumer'ları bir grupta toplar (yük dengeleme için).
       group-id: wallet-group
+      # Uygulama yeni bağlandığında kuyruktaki en eski mesajdan itibaren okumaya başlar.
       auto-offset-reset: earliest
+      # Kafka'dan gelen byte verisini Java'da String olarak anlamlandırır (deserialization).
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer

@@ -1,32 +1,39 @@
-// 1. CÜZDAN BİLGİSİNİ GETİR (GET İsteği)
+// 1. CÜZDAN BİLGİSİNİ GETİR
+// Kullanıcının girdiği e-postaya göre backend'den bakiye bilgisini sorgulayan fonksiyon.
 async function getWallet() {
     const email = document.getElementById('searchEmail').value;
     const resultDiv = document.getElementById('balanceResult');
 
     try {
-        // Backend'deki @GetMapping("/{email}") kapısını çalıyoruz
+        // API katmanındaki GET endpoint'ine istek atılarak cüzdan verisi çekilir.
         const response = await fetch(`/api/wallets/${email}`);
 
+        // Yanıt başarılı değilse (404 veya 500), backend'den gelen hata mesajı yakalanır.
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || "Cüzdan bulunamadı!");
         }
 
+        // Gelen JSON verisinden bakiye ve para birimi arayüze basılır.
         const wallet = await response.json();
         resultDiv.innerText = `Güncel Bakiye: ${wallet.balance} ${wallet.currency}`;
+        resultDiv.className = "mt-3 text-center fw-bold text-success";
     } catch (error) {
+        // Hata durumunda sonuç alanı kırmızıya çevrilir ve hata mesajı gösterilir.
         resultDiv.className = "mt-3 text-center fw-bold text-danger";
         resultDiv.innerText = error.message;
     }
 }
 
-// 2. TRANSFER YAP (POST İsteği)
+// 2. TRANSFER YAP
+// Gönderen, alıcı ve miktar bilgilerini paketleyip transfer işlemini başlatan fonksiyon.
 async function transferMoney() {
     const fromEmail = document.getElementById('fromEmail').value;
     const toEmail = document.getElementById('toEmail').value;
     const amount = document.getElementById('amount').value;
     const statusDiv = document.getElementById('transferStatus');
 
+    // Backend'in beklediği DTO yapısına uygun veri paketi.
     const requestData = {
         fromEmail: fromEmail,
         toEmail: toEmail,
@@ -34,7 +41,7 @@ async function transferMoney() {
     };
 
     try {
-        // Backend'deki @PostMapping("/transfer") kapısına JSON gönderiyoruz
+        // Veriler JSON formatında POST isteğiyle transfer endpoint'ine gönderilir.
         const response = await fetch('/api/wallets/transfer', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -44,22 +51,27 @@ async function transferMoney() {
         const resultText = await response.text();
 
         if (response.ok) {
+            // İşlem başarılıysa yeşil mesaj verilir ve tablo güncellenir.
             statusDiv.className = "mt-3 text-center text-success fw-bold";
             statusDiv.innerText = "✅ " + resultText;
+            listAllWallets();
         } else {
-            // 500 veya 404 hatası gelirse burası çalışır
+            // Bakiyenin yetersiz olması gibi durumlarda dönen hata yakalanır.
             statusDiv.className = "mt-3 text-center text-danger fw-bold";
             statusDiv.innerText = "❌ Hata: " + resultText;
         }
     } catch (error) {
         statusDiv.innerText = "Bağlantı hatası!";
     }
-}async function createWallet() {
+}
+
+// 3. YENİ CÜZDAN OLUŞTUR
+// E-posta ve başlangıç bakiyesi ile sisteme yeni kayıt ekleyen fonksiyon.
+async function createWallet() {
      const email = document.getElementById('newEmail').value;
      const balance = document.getElementById('newBalance').value;
      const statusDiv = document.getElementById('createStatus');
 
-     // Backend'deki 'Wallet' entity yapısına uygun JSON objesi
      const walletData = {
          userEmail: email,
          balance: balance
@@ -74,28 +86,34 @@ async function transferMoney() {
 
          if (response.ok) {
              const data = await response.json();
-             statusDiv.className = "mt-3 text-center text-success";
+             statusDiv.className = "mt-3 text-center text-success fw-bold";
              statusDiv.innerText = `✅ Cüzdan başarıyla oluşturuldu! ID: ${data.id}`;
-             // Formu temizle
+
+             // İşlem sonrası form temizlenir ve liste tazelenir.
              document.getElementById('newEmail').value = '';
              document.getElementById('newBalance').value = '';
+             listAllWallets();
          } else {
-             statusDiv.className = "mt-3 text-center text-danger";
+             statusDiv.className = "mt-3 text-center text-danger fw-bold";
              statusDiv.innerText = "❌ Hata: Cüzdan oluşturulamadı!";
          }
      } catch (error) {
          statusDiv.innerText = "Bağlantı hatası!";
      }
- }
-// 1. En tepeye bu değişkeni ekle kanka (Varsayılan olarak 'toEmail' kalsın)
+}
+
+// ARAYÜZ ETKİLEŞİMİ VE TABLO YÖNETİMİ
+// Hangi input kutusuna odaklanıldığını takip eden global değişken.
 let lastFocusedInputId = 'toEmail';
 
-// 2. Tabloyu dolduran fonksiyonu şu şekilde güncelle:
+// Sistemdeki tüm cüzdanları çekip sağ taraftaki tabloya dinamik olarak basar.
 async function listAllWallets() {
     const tableBody = document.getElementById('walletTableBody');
     try {
         const response = await fetch('/api/wallets/all');
         const wallets = await response.json();
+
+        // Tabloyu her yenilemede temizleyip güncel veriyi yazar.
         tableBody.innerHTML = '';
 
         wallets.forEach(wallet => {
@@ -115,29 +133,31 @@ async function listAllWallets() {
     } catch (error) { console.error("Hata:", error); }
 }
 
-// 3. Seçilen e-postayı aktif kutuya yazan fonksiyon:
+// Listeden seçilen e-postayı, odaklanılmış olan aktif input kutusuna doldurur.
 function autoFillEmail(email) {
     if (lastFocusedInputId) {
         document.getElementById(lastFocusedInputId).value = email;
     }
 }
- // 2. Silme fonksiyonu
- async function deleteWallet(email) {
+
+// Cüzdanı sistemden ve veritabanından kalıcı olarak siler.
+async function deleteWallet(email) {
      if (!confirm(email + " cüzdanını silmek istediğine emin misin?")) return;
 
      try {
+         // DELETE isteğiyle cüzdan kaydı sistemden kaldırılır.
          const response = await fetch(`/api/wallets/${email}`, {
              method: 'DELETE'
          });
 
          if (response.ok) {
              alert("Cüzdan silindi!");
-             listAllWallets(); // Listeyi tazele kanka
+             listAllWallets(); // Silme sonrası listeyi anında günceller.
          } else {
              alert("Silme işlemi başarısız.");
          }
      } catch (error) { console.error("Hata:", error); }
- }
+}
 
- // Sayfa ilk açıldığında listeyi otomatik yüklesin kanka
- window.onload = listAllWallets;
+// Sayfa ilk yüklendiğinde mevcut listeyi getirmek için tetikleyici.
+window.onload = listAllWallets;

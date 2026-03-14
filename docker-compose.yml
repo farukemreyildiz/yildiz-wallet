@@ -1,35 +1,44 @@
 services:
+  # 1. PostgreSQL Veritabanı Servisi
+  # Cüzdan bilgilerini ve işlem kayıtlarını kalıcı olarak diskte tutar.
   postgres:
-    image: postgres:15
+    image: postgres:15 # PostgreSQL'in 15. sürümünü kullanıyoruz.
     container_name: wallet-db
     ports:
-      - "5432:5432"
+      # Sol taraf (5433) senin bilgisayarındaki port, sağ taraf (5432) konteyner içindeki port.
+      # Lokaldeki diğer Postgres servisleriyle çakışmaması için 5433'e çektik.
+      - "5433:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: wallet_db
+      POSTGRES_DB: wallet_db # Başlangıçta otomatik oluşturulacak veritabanı adı.
 
+  # 2. Redis Servisi
+  # Bellek içi (in-memory) veri deposu. Hızlı bakiye sorguları veya geçici veriler için idealdir.
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine # Hafif bir sürüm olan alpine imajını kullanıyoruz.
     container_name: wallet-redis
     ports:
       - "6379:6379"
 
+  # 3. Kafka Servisi
+  # Sistemler arası asenkron mesajlaşmayı (Event-driven) yöneten ana parça.
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: wallet-kafka
     ports:
       - "9092:9092"
     environment:
-      # KRaft Ayarları (Zookeeper gerektirmez)
+      # KRaft Ayarları: Modern Kafka'da artık Zookeeper'a gerek duymadan bu ayarlar kullanılır.
       KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_PROCESS_ROLES: 'broker,controller' # Kafka hem veri taşıyıcı hem de yönetici rolünde.
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:29093'
       KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093'
+      # Uygulamanın (localhost) Kafka'ya bağlanacağı adres:
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      # KRaft için rastgele bir Cluster ID (Zorunludur)
+      # KRaft modu için gerekli olan benzersiz küme kimliği (Cluster ID).
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
